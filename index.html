@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Catatanku</title>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--tx:#1b1f24;--mut:#6b7480;--ac:#2563eb;--in:#16a34a;--out:#dc2626;--bd:#e3e6ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1b2026;--tx:#eceff3;--mut:#9aa4b0;--ac:#60a5fa;--in:#4ade80;--out:#f87171;--bd:#2a313a}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1b2026;--tx:#eceff3;--mut:#9aa4b0;--ac:#60a5fa;--in:#4ade80;--out:#f87171;--bd:#2a313a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:16px 14px 90px}
+h1{font-size:22px;margin:4px 0 12px}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:4px;margin-bottom:14px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);padding:10px;border-radius:9px;font:inherit;font-weight:600}
+.tabs button.on{background:var(--ac);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+input,textarea,select{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px}
+textarea{min-height:90px;resize:vertical}
+.btn{border:0;background:var(--ac);color:#fff;font:inherit;font-weight:600;padding:10px 14px;border-radius:10px}
+.btn.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.sum div{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px}
+.sum small{color:var(--mut);display:block}
+.sum b{font-size:17px}
+.sum .full{grid-column:1/-1}
+.in{color:var(--in)}.out{color:var(--out)}
+.item{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.item h3{margin:0 0 2px;font-size:16px}
+.item p{margin:0;white-space:pre-wrap;word-break:break-word}
+.mut{color:var(--mut);font-size:13px}
+.x{border:0;background:none;color:var(--mut);font-size:20px;padding:0 4px}
+.seg{display:flex;gap:6px;margin-bottom:8px}
+.seg label{flex:1;text-align:center;border:1px solid var(--bd);border-radius:10px;padding:9px;font-weight:600}
+.seg input{display:none}
+.seg input:checked+span{color:var(--ac)}
+.seg label:has(input:checked){border-color:var(--ac)}
+.hide{display:none}
+.empty{text-align:center;color:var(--mut);padding:20px}
+.bar{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:var(--out)}
+.lock{position:fixed;inset:0;background:var(--bg);z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px}.lock.hide{display:none}.lock input{max-width:240px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<h1>📒 Catatanku</h1>
+<div class="tabs">
+<button id="t1" class="on" onclick="tab(1)">Catatan</button>
+<button id="t2" onclick="tab(2)">Keuangan</button>
+</div>
+
+<section id="p1">
+<div class="card">
+<input id="nt" placeholder="Judul (mis. Hal yang baru saya tahu)">
+<textarea id="nb" placeholder="Tulis catatan di sini..."></textarea>
+<button class="btn" onclick="addNote()">Simpan catatan</button>
+</div>
+<input id="q" placeholder="🔍 Cari catatan..." oninput="renderNotes()">
+<div id="nl"></div>
+</section>
+
+<section id="p2" class="hide">
+<input type="month" id="mo" onchange="renderTx()">
+<div class="sum">
+<div><small>Pemasukan</small><b class="in" id="si">0</b></div>
+<div><small>Pengeluaran</small><b class="out" id="so">0</b></div>
+<div class="full"><small>Saldo bulan ini</small><b id="ss">0</b></div>
+</div>
+<div class="card"><b>Pengeluaran per kategori</b><div id="ch"></div></div>
+<div class="card">
+<div class="seg">
+<label><input type="radio" name="tp" value="out" checked><span>Pengeluaran</span></label>
+<label><input type="radio" name="tp" value="in"><span>Pemasukan</span></label>
+</div>
+<input id="am" type="number" inputmode="numeric" placeholder="Jumlah (Rp)">
+<div class="row">
+<input id="ct" list="cl" placeholder="Kategori (mis. Makan)">
+<input id="dt" type="date">
+</div>
+<datalist id="cl"><option>Makan</option><option>Transport</option><option>Belanja</option><option>Tagihan</option><option>Gaji</option><option>Lainnya</option></datalist>
+<input id="nm" placeholder="Keterangan (opsional)">
+<div class="row"><button class="btn" id="tb" onclick="addTx()">Tambah</button><button class="btn g hide" id="tc" onclick="cancelEdit()">Batal</button></div>
+</div>
+<div id="tl"></div>
+</section>
+
+<div class="card mut" style="margin-top:18px">
+Data tersimpan di perangkat ini saja. Cadangkan secara berkala:
+<div class="row" style="margin-top:8px">
+<button class="btn g" onclick="exp()">Ekspor</button>
+<button class="btn g" onclick="document.getElementById('fi').click()">Impor</button>
+</div>
+<input type="file" id="fi" accept=".json" class="hide" onchange="imp(this)">
+<button class="btn g" style="margin-top:8px;width:100%" onclick="setPin()">🔒 Atur / hapus PIN</button>
+</div>
+</main>
+
+<div id="lk" class="lock hide"><h1>🔒 Catatanku</h1><input id="lp" type="password" inputmode="numeric" placeholder="Masukkan PIN" onkeydown="if(event.key==='Enter')unlock()"><button class="btn" onclick="unlock()">Buka</button><div id="le" class="out"></div></div>
+
+<script>
+var K='catatanku-v1',PK='catatanku-pin',ED=null,S={notes:[],tx:[]};
+function load(){try{var r=localStorage.getItem(K);if(r)S=JSON.parse(r);}catch(e){}S.notes=S.notes||[];S.tx=S.tx||[];}
+function save(){try{localStorage.setItem(K,JSON.stringify(S));}catch(e){alert('Penyimpanan browser tidak tersedia. Gunakan Ekspor untuk mencadangkan.');}}
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function rp(n){return 'Rp '+new Intl.NumberFormat('id-ID').format(n)}
+function tab(n){$('p1').classList.toggle('hide',n!=1);$('p2').classList.toggle('hide',n!=2);$('t1').className=n==1?'on':'';$('t2').className=n==2?'on':'';}
+function addNote(){var t=$('nt').value.trim(),b=$('nb').value.trim();if(!t&&!b)return;S.notes.unshift({id:Date.now(),t:t||'Tanpa judul',b:b,d:new Date().toISOString()});$('nt').value='';$('nb').value='';save();renderNotes();}
+function delNote(id){if(!confirm('Hapus catatan ini?'))return;S.notes=S.notes.filter(function(n){return n.id!=id});save();renderNotes();}
+function renderNotes(){var q=$('q').value.toLowerCase(),l=S.notes.filter(function(n){return (n.t+' '+n.b).toLowerCase().indexOf(q)>-1});
+$('nl').innerHTML=l.length?l.map(function(n){return '<div class="card item"><div><h3>'+esc(n.t)+'</h3><p>'+esc(n.b)+'</p><div class="mut">'+new Date(n.d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+'</div></div><button class="x" onclick="delNote('+n.id+')">×</button></div>'}).join(''):'<div class="empty">Belum ada catatan.</div>';}
+function addTx(){var a=parseFloat($('am').value);if(!a||a<=0){alert('Isi jumlah dengan benar.');return;}
+var tp=document.querySelector('input[name=tp]:checked').value;
+var o={id:ED||Date.now(),tp:tp,a:a,c:$('ct').value.trim()||'Lainnya',n:$('nm').value.trim(),d:$('dt').value||today()};
+if(ED){S.tx=S.tx.map(function(t){return t.id==ED?o:t});}else S.tx.unshift(o);
+cancelEdit();save();renderTx();}
+function editTx(id){var t=S.tx.filter(function(x){return x.id==id})[0];if(!t)return;ED=id;$('am').value=t.a;$('ct').value=t.c;$('nm').value=t.n;$('dt').value=t.d;document.querySelector('input[name=tp][value='+t.tp+']').checked=true;$('tb').textContent='Simpan perubahan';$('tc').classList.remove('hide');window.scrollTo(0,0);}
+function cancelEdit(){ED=null;$('am').value='';$('nm').value='';$('tb').textContent='Tambah';$('tc').classList.add('hide');}
+function h(s){var x=5381;for(var i=0;i<s.length;i++)x=((x<<5)+x+s.charCodeAt(i))|0;return String(x)}
+function getPin(){try{return localStorage.getItem(PK)}catch(e){return null}}
+function checkLock(){if(getPin()){$('lk').classList.remove('hide');$('lp').value='';}else $('lk').classList.add('hide');}
+function unlock(){if(h($('lp').value)==getPin()){$('lk').classList.add('hide');$('lp').value='';$('le').textContent='';}else{$('le').textContent='PIN salah';}}
+function setPin(){if(getPin()){var c=prompt('Masukkan PIN lama untuk menghapus PIN:');if(c===null)return;if(h(c)==getPin()){try{localStorage.removeItem(PK)}catch(e){}alert('PIN dihapus.');}else alert('PIN salah.');return;}
+var p=prompt('Buat PIN (4-6 angka):');if(!p)return;if(!/^\d{4,6}$/.test(p)){alert('PIN harus 4-6 angka.');return;}try{localStorage.setItem(PK,h(p));alert('PIN aktif. Akan diminta saat halaman dibuka.');}catch(e){alert('Gagal menyimpan PIN.');}}
+function delTx(id){if(!confirm('Hapus transaksi ini?'))return;S.tx=S.tx.filter(function(t){return t.id!=id});save();renderTx();}
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function renderTx(){var m=$('mo').value,l=S.tx.filter(function(t){return t.d.slice(0,7)==m}).sort(function(a,b){return b.d.localeCompare(a.d)||b.id-a.id});
+var i=0,o=0;l.forEach(function(t){t.tp=='in'?i+=t.a:o+=t.a});
+$('si').textContent=rp(i);$('so').textContent=rp(o);$('ss').textContent=rp(i-o);$('ss').className=(i-o)<0?'out':'in';
+var cs={};l.forEach(function(t){if(t.tp=='out')cs[t.c]=(cs[t.c]||0)+t.a});var ks=Object.keys(cs).sort(function(a,b){return cs[b]-cs[a]});
+$('ch').innerHTML=ks.length?ks.map(function(k){var p=Math.round(cs[k]/o*100);return '<div style="margin-top:8px"><div style="display:flex;justify-content:space-between"><span>'+esc(k)+'</span><span class="mut">'+rp(cs[k])+' · '+p+'%</span></div><div class="bar"><i style="width:'+p+'%"></i></div></div>'}).join(''):'<div class="mut" style="margin-top:6px">Belum ada pengeluaran.</div>';
+$('tl').innerHTML=l.length?l.map(function(t){return '<div class="card item"><div><h3>'+esc(t.c)+'</h3><div class="mut">'+esc(t.n?t.n+' · ':'')+new Date(t.d+'T00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short'})+'</div></div><div style="text-align:right"><b class="'+(t.tp=='in'?'in':'out')+'">'+(t.tp=='in'?'+':'−')+rp(t.a)+'</b><br><button class="x" onclick="editTx('+t.id+')">✎</button><button class="x" onclick="delTx('+t.id+')">×</button></div></div>'}).join(''):'<div class="empty">Belum ada transaksi bulan ini.</div>';}
+function exp(){var b=new Blob([JSON.stringify(S)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='catatanku-cadangan.json';a.click();}
+function imp(el){var f=el.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!confirm('Ganti semua data dengan file ini?'))return;S={notes:d.notes||[],tx:d.tx||[]};save();renderNotes();renderTx();}catch(e){alert('File tidak valid.');}};r.readAsText(f);}
+load();checkLock();$('mo').value=today().slice(0,7);$('dt').value=today();renderNotes();renderTx();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</body>
+</html>
